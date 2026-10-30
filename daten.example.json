@@ -1,0 +1,12 @@
+{
+  "name": "Vorname Nachname",
+  "rollen": "Rolle &middot; Rolle",
+  "telefon": "+49 000 0000000",
+  "telefon_link": "tel:+490000000000",
+  "email": "name@example.com",
+  "website": "example.com",
+  "website_link": "https://www.example.com/",
+  "linkedin_link": "https://www.linkedin.com/in/beispiel",
+  "adresse": "Strasse 1 &middot; 00000 Ort",
+  "tagline": "Tagline."
+}

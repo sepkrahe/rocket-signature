@@ -1,0 +1,20 @@
+import re,sys
+html=open(sys.argv[1]).read()
+checks=[]
+def c(name,ok,detail=""): checks.append((name,ok,detail))
+imgs=re.findall(r'<img[^>]*>',html)
+c("No base64/data-URI images (Gmail blocks them)", 'data:image' not in html)
+c("All images have width+height attributes", all('width="' in i and 'height="' in i for i in imgs), f"{len(imgs)} images")
+c("All images have alt attribute", all('alt="' in i for i in imgs))
+c("All image URLs absolute https", all(re.search(r'src="https://',i) for i in imgs) or 'file://' in html, "test copy uses local files")
+c("All links absolute (https/mailto/tel)", all(h.startswith(('https://','mailto:','tel:')) for h in re.findall(r'href="([^"]+)"',html)))
+c("No <style> blocks or CSS classes", '<style' not in html and 'class=' not in html)
+bad=[p for p in ['display:flex','display:grid','position:','float:','background-image','@media','<svg','<div'] if p in html]
+c("No CSS that email clients drop (flex, grid, position, SVG, div layout)", not bad, ", ".join(bad))
+c("Table-based layout", html.count('<table')>=3)
+c("Background colors set as bgcolor attribute too (Outlook)", html.count('bgcolor=')>=2)
+c("Width <= 600 px", all(int(w)<=600 for w in re.findall(r'width="(\d+)"',html)))
+c("Under 10,000 characters (Gmail signature limit)", len(html)<10000, f"{len(html)} chars")
+c("ASCII only (safe for 7-bit .mailsignature)", all(ord(x)<128 for x in html))
+for n,ok,d in checks: print(("PASS " if ok else "FAIL ")+n+(f"  [{d}]" if d else ""))
+print("ALL PASS" if all(o for _,o,_ in checks) else "SOME FAILED")
