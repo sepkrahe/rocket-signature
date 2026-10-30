@@ -1,5 +1,8 @@
 """Build the email signature HTML following email-client best practices.
 
+Colors come from the "Lift Off" design system, component EmailSignature
+(https://claude.ai/artifact/FoMxEKirugrEcs4n5GvtgH).
+
 Usage: python3 build.py <image_base_url> <out_dir>
 """
 import sys, os
@@ -18,14 +21,24 @@ import json
 _d = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "daten.json")))
 NAME = _d["name"]
 LINKS = {
-    "phone": (_d["telefon_link"], _d["telefon"], "Telefon"),
+    "phone": (_d.get("telefon_link", ""), _d.get("telefon", ""), "Telefon"),
     "mail": ("mailto:" + _d["email"], _d["email"], "E-Mail"),
     "web": (_d["website_link"], _d["website"], "Website"),
     "linkedin": (_d["linkedin_link"], "LinkedIn", "LinkedIn"),
 }
-ADDRESS = _d["adresse"]
+
+def keep_parts(text):
+    """Give an "A &middot; B &middot; C" line one break point, after its first
+    half, so a phone shows two balanced lines and never a lone last word."""
+    parts = [p.strip().replace(" ", "&nbsp;") for p in text.split("&middot;")]
+    k = max(1, len(parts) // 2)
+    return " ".join(["&nbsp;&middot;&nbsp;".join(parts[:k]) + "&nbsp;&middot;",
+                     "&nbsp;&middot;&nbsp;".join(parts[k:])]) if len(parts) > 1 else parts[0]
+
+
+ADDRESS = keep_parts(_d["adresse"])
 TAGLINE = _d["tagline"]
-ROLES = _d["rollen"]
+ROLES = keep_parts(_d["rollen"])
 
 
 def icon(name, alt):
@@ -35,14 +48,18 @@ def icon(name, alt):
 
 def contact(name, pad_bottom, pad_right):
     href, label, alt = LINKS[name]
+    # The gap is padding, not cell width, so it survives when a phone squeezes the table.
     return (
-        f'<td width="30" valign="middle" style="padding:0 0 {pad_bottom}px 0;width:30px;">{icon(name, alt)}</td>'
+        f'<td width="22" valign="middle" style="padding:0 8px {pad_bottom}px 0;width:22px;">{icon(name, alt)}</td>'
         f'<td valign="middle" style="padding:0 {pad_right}px {pad_bottom}px 0;font-family:{FONT};font-size:13px;line-height:18px;color:{DARK};">'
         f'<a href="{href}" style="color:{DARK};text-decoration:none;">{label}</a></td>'
     )
 
 
 def build(with_address):
+    # The phone row is optional: it is left out when daten.json has no number.
+    rows = [n for n in ("phone", "mail", "web", "linkedin") if LINKS[n][1]]
+    contacts = "\n".join(f"<tr>{contact(n, 0 if n == rows[-1] else 7, 0)}</tr>" for n in rows)
     address = (
         f'<tr><td colspan="2" style="padding:12px 0 0 0;font-family:{FONT};font-size:12px;line-height:16px;color:{MUTED};">{ADDRESS}</td></tr>'
         if with_address else ""
@@ -56,10 +73,7 @@ def build(with_address):
 <table cellpadding="0" cellspacing="0" border="0" role="presentation" width="100%" style="border-collapse:collapse;width:100%;">
 <tr><td colspan="2" style="font-family:{FONT};font-size:20px;line-height:26px;font-weight:bold;color:{DARK};">{NAME}</td></tr>
 <tr><td colspan="2" style="padding:2px 0 14px 0;font-family:{FONT};font-size:12px;line-height:16px;font-weight:bold;color:{TEAL};">{ROLES}</td></tr>
-<tr>{contact("phone", 7, 0)}</tr>
-<tr>{contact("mail", 7, 0)}</tr>
-<tr>{contact("web", 7, 0)}</tr>
-<tr>{contact("linkedin", 0, 0)}</tr>
+{contacts}
 {address}
 </table>
 </td>
@@ -86,7 +100,7 @@ for with_address, slug in [(True, "mit-adresse"), (False, "ohne-adresse")]:
     with open(f"{OUT}/signatur-{slug}.html", "w") as f:
         f.write('<!DOCTYPE html><html lang="de"><head><meta charset="utf-8">'
                 '<meta name="viewport" content="width=device-width, initial-scale=1">'
-                f'<title>Signatur Adriane Krahe</title></head><body style="margin:0;padding:24px;background:#ffffff;">{sig}</body></html>\n')
+                f'<title>Signatur {NAME}</title></head><body style="margin:0;padding:24px;background:#ffffff;">{sig}</body></html>\n')
     # 2) Apple Mail .mailsignature content
     with open(f"{OUT}/apple-mail-{slug}.txt", "w") as f:
         f.write(HEADER + '<body style="word-wrap: break-word; -webkit-nbsp-mode: space; line-break: after-white-space;">'

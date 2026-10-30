@@ -5,9 +5,11 @@ description: Build, change, test and install an HTML email signature that works 
 
 # Email signature: build, test, install
 
-This repository holds an email signature for Apple Mail. It follows the
-current best practices for email-client compatibility. Read this whole file
-before changing anything.
+This repository holds Adriane Krahe's email signature for Apple Mail. It
+follows the current best practices for email-client compatibility. Read this
+whole file before changing anything. Its sibling `sepkrahe/coach-signature`
+(Thomas Stiegler, Executive Coachings design system) follows the same rules
+and tooling; keep the two in step.
 
 ## What lives where
 
@@ -67,7 +69,15 @@ and stop if it finds real data. Commit as
     are kept as the owner chose them. Don't make it worse; propose
     `#0D7560` for the roles line if asked to fix contrast.
 
-Design source: the **Lift Off** design system, component
+13. **Line breaks on phones:** lines made of parts ("A · B · C": roles,
+    address) get one break point, after their first half; `build.py`
+    (`keep_parts`) joins everything else with `&nbsp;`. Gaps between an
+    icon and its text are padding, not cell width, so a phone cannot
+    squeeze them away. An empty `telefon` in `daten.json` leaves the phone
+    row out.
+
+Design source: the **Lift Off** design system
+(https://claude.ai/artifact/FoMxEKirugrEcs4n5GvtgH), component
 `EmailSignature`, which has the tokens for every colour. Keep one accent
 (the dark footer); no gradients, no `#54DCFC` (reserved decorative cyan),
 no permanent call-to-action button.
@@ -91,14 +101,22 @@ Change the design in `build.py` (the template), contact data in
 
 1. **Lint:** `python3 lint.py dist/snippet-mit-adresse.html` and the same
    for `ohne-adresse`. Every line must say PASS.
-2. **Render:** build a local copy whose images load from disk, then
-   render the scenarios:
+2. **Render:** serve the images over http (WebKit refuses some `file://`
+   images, which shows up as false "images did not load" failures), build
+   a test copy against that server, and render both variants:
    ```bash
-   python3 build.py "file://$PWD/bilder" /tmp/sig-test
-   python3 test_render.py /tmp/sig-test/signatur-mit-adresse.html /tmp/sig-test/tests
+   python3 -m http.server 8765 --bind 127.0.0.1 &
+   python3 build.py http://127.0.0.1:8765/bilder /tmp/sig-test
+   for v in mit ohne; do
+     uv run --no-project --with playwright==1.64.1 --with pillow \
+       python test_render.py /tmp/sig-test/signatur-$v-adresse.html /tmp/sig-test/tests-$v
+   done
+   kill %1
    ```
-   (Install once: `pip install playwright pillow && python3 -m playwright install chromium webkit`.)
-   Open `/tmp/sig-test/tests/overview.png` and look at every scenario:
+   On kalahari, Playwright 1.64.1 matches the browsers already cached in
+   `~/.cache/ms-playwright`; elsewhere run
+   `python3 -m playwright install chromium webkit` once.
+   Open each `overview.png` and look at every scenario:
    Apple Mail (WebKit), Gmail web (Chromium), Outlook Desktop (no rounded
    corners, fixed width), images blocked, dark mode inverted, dark page
    behind the card, phone at 360px. Check: nothing cut off, no awkward
