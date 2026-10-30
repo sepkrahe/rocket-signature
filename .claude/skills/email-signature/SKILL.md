@@ -144,23 +144,29 @@ already sent or installed. A new image name means reinstalling.
 ## Install in Apple Mail (the only reliable way)
 
 Copying the preview from Safari into Mail's signature editor breaks the
-table layout and attaches the images to every mail. Instead:
+table layout and attaches the images to every mail. Instead overwrite the
+signature's file. The XXX marker is what makes this reliable: guessing the
+file by size or date once led to editing a file Mail did not use.
 
-1. Mail → Einstellungen → Signaturen: select the account that actually
-   sends (a custom-domain address set up in iCloud+ sends through
-   **iCloud**, not through its own account entry), click **+**,
-   name the signature, type `XXX`. Quit Mail with ⌘Q.
-2. Open `~/Library/Mail/V10/MailData/Signatures/` (the `V` number can
-   differ; use the highest). Sort by date modified; the newest
-   `.mailsignature` file is the new one.
-3. If the file is locked: Get Info (Informationen) → uncheck Locked
-   (Geschützt).
-4. Replace the file's ENTIRE content with
-   `dist/apple-mail-<variant>.txt` (it includes the right headers):
-   `cp dist/apple-mail-mit-adresse.txt "<that file>"`.
-5. Lock the file again (`chflags uchg "<file>"`, or Get Info → Locked),
-   otherwise Mail overwrites it.
-6. Open Mail, ⌘N, choose the signature in the Signature menu.
+1. Mail → Einstellungen → Signaturen → select the signature (or create
+   one with **+** under the account that actually sends: a custom-domain
+   address set up in iCloud+ sends through **iCloud**). Replace its
+   text with `XXX`. If Mail won't save the change, the file is locked:
+   unlock it first (step 4) and repeat. Quit Mail with ⌘Q.
+2. Open `~/Library/Mail/V10/MailData/Signatures/` (use the highest `V`
+   number), sort by date modified, and open the newest `.mailsignature`
+   with TextEdit. It must contain `XXX`; if not, stop (the signature may
+   live in `~/Library/Mobile Documents/com~apple~mail/Data/MailData/Signatures/`).
+3. Keep Mail's header lines (`Content-Transfer-Encoding` … `Mime-Version`,
+   including its `Message-Id`). Replace everything from `<body` to the
+   end with everything from `<body` to the end of
+   `dist/apple-mail-<variant>.txt`. Save.
+4. Lock the file (Get Info → Locked, or `chflags uchg "<file>"`),
+   otherwise Mail overwrites it. To change it later: `chflags nouchg`
+   or uncheck Locked.
+5. Open Mail, ⌘N, choose the signature. Check: contacts side by side and
+   an "E-Mail-Größe" of a few KB (48 KB means embedded images, i.e. an
+   old pasted version).
 
 If the signature doesn't appear in a new mail's menu, it is assigned to
 the wrong account: drag it from "Alle Signaturen" onto the account that
@@ -172,7 +178,7 @@ sends the mail, then set "Signatur auswählen" for that account.
 |---|---|---|
 | Grey boxes instead of images in Gmail | base64 images | host images (rule 1) |
 | "?" boxes in Apple Mail | image URL unreachable or changed | check the URL in a browser; keep file names stable |
-| Huge logo and icons, layout broken | signature pasted through Mail's editor | install via the `.mailsignature` file |
+| Huge logo and icons, layout broken, 48 KB | signature pasted through Mail's editor, or the edited file is not the one Mail uses | install via the `.mailsignature` file, found with the XXX marker |
 | Signature missing from the menu | wrong account | assign it to the sending account (iCloud) |
 | Images attached to every mail | images pasted into Mail's editor | install via the file, with hosted images |
 | Square corners in Outlook | Outlook ignores `border-radius` | expected |
