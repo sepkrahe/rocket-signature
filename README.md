@@ -7,6 +7,8 @@ Die Bilder werden über GitHub Pages unter `https://signatur.positive-leadership
 - `bilder/` – Logo und Icons (PNG, doppelte Auflösung)
 - `build.py` – erzeugt die Signatur: `python3 build.py https://signatur.positive-leadership-coach.com/bilder dist`
 - `lint.py` – prüft die Signatur auf E-Mail-Kompatibilität
+- `test_render.py` – rendert 7 simulierte E-Mail-Programme (Apple Mail, Gmail, Outlook, Bilder blockiert, Dark Mode, Smartphone)
+- `.claude/skills/email-signature/SKILL.md` – Anleitung für Claude Code: Regeln, Bauen, Testen, Installieren
 - `daten.example.json` – Vorlage für die Kontaktdaten. Die echten Daten liegen nur lokal in `daten.json` (nicht im Repository).
 
 ## Umgesetzte Best Practices
