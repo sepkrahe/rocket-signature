@@ -9,8 +9,10 @@ c("All images have alt attribute", all('alt="' in i for i in imgs))
 c("All image URLs absolute https", all(re.search(r'src="https://',i) for i in imgs) or 'file://' in html, "test copy uses local files")
 c("All links absolute (https/mailto/tel)", all(h.startswith(('https://','mailto:','tel:')) for h in re.findall(r'href="([^"]+)"',html)))
 c("No <style> blocks or CSS classes", '<style' not in html and 'class=' not in html)
-bad=[p for p in ['display:flex','display:grid','position:','float:','background-image','@media','<svg','<div'] if p in html]
-c("No CSS that email clients drop (flex, grid, position, SVG, div layout)", not bad, ", ".join(bad))
+bad=[p for p in ['display:flex','display:grid','position:','float:','background-image','@media','<svg'] if p in html]
+c("No CSS that email clients drop (flex, grid, position, SVG, media queries)", not bad, ", ".join(bad))
+divs=re.findall(r'<div[^>]*>',html)
+c("Divs only as hybrid columns with an Outlook fallback", all('display:inline-block' in d for d in divs) and (not divs or '<!--[if mso]>' in html), f"{len(divs)} hybrid divs")
 c("Table-based layout", html.count('<table')>=3)
 c("Background colors set as bgcolor attribute too (Outlook)", html.count('bgcolor=')>=2)
 c("Width <= 600 px", all(int(w)<=600 for w in re.findall(r'width="(\d+)"',html)))

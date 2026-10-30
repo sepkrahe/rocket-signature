@@ -13,7 +13,7 @@ Die Bilder werden über GitHub Pages unter `https://signatur.positive-leadership
 
 ## Umgesetzte Best Practices
 - Bilder über https gehostet statt eingebettet (Gmail blockiert Base64-Bilder)
-- Tabellen-Layout, nur Inline-CSS, 460 px breit, auf Mobilgeräten fließend
+- Tabellen-Layout, nur Inline-CSS, 540 px breit; Kontakte zweispaltig, auf Mobilgeräten untereinander (Hybrid-Spalten mit Outlook-Fallback)
 - Hintergrundfarben zusätzlich als `bgcolor` (Outlook)
 - Icons dekorativ (`alt=""`), Logo mit Alt-Text
 - Unter 10.000 Zeichen (Gmail-Limit), nur ASCII

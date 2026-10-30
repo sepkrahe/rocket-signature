@@ -43,13 +43,19 @@ and stop if it finds real data. Commit as
    attributes** on every `<img>`. Without the attributes, Outlook and
    Apple Mail's paste show images at full pixel size.
 3. **Tables for layout, inline styles only.** No `<style>`, no classes,
-   no `div` layout, no flexbox, grid, `position`, `float` or
-   `background-image`.
+   no flexbox, grid, `position`, `float`, media queries or
+   `background-image`. The one allowed `div` use is the hybrid columns
+   in rule 5.
 4. **Background colours twice:** `bgcolor` attribute and inline
    `background-color` (Outlook Desktop reads the attribute).
-5. **Width:** 320–600px; this signature is 460px with `width="460"` and
-   `style="width:100%;max-width:460px"`: fixed in Outlook, fluid on phones.
-   Stack contacts in one column; a two-column grid gets cut off on phones.
+5. **Width:** 320–600px; this signature is 540px with `width="540"` and
+   `style="width:100%;max-width:540px"`: fixed in Outlook, fluid on phones.
+   The contacts sit in two columns side by side (the owner's preference)
+   as **hybrid columns**: two `display:inline-block` divs with
+   `width:100%;max-width:<n>px` that wrap under each other on narrow
+   screens, inside a cell with `font-size:0`, plus an
+   `<!--[if mso]>` two-column table for Outlook Desktop, which ignores
+   `max-width`. A plain two-column table would be cut off on phones.
 6. **Fonts:** `Helvetica, Arial, sans-serif`. Email clients don't load
    web fonts such as Inter.
 7. **Rounded corners** are fine but degrade to square in Outlook Desktop;
@@ -74,7 +80,7 @@ and stop if it finds real data. Commit as
     (`keep_parts`) joins everything else with `&nbsp;`. Gaps between an
     icon and its text are padding, not cell width, so a phone cannot
     squeeze them away. An empty `telefon` in `daten.json` leaves the phone
-    row out.
+    row out of the left column.
 
 Design source: the **Lift Off** design system
 (https://claude.ai/artifact/FoMxEKirugrEcs4n5GvtgH), component

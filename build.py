@@ -46,25 +46,50 @@ def icon(name, alt):
             f'style="display:block;width:22px;height:22px;border:0;outline:none;">')
 
 
-def contact(name, pad_bottom, pad_right):
+def contact(name, pad_bottom):
     href, label, alt = LINKS[name]
     # The gap is padding, not cell width, so it survives when a phone squeezes the table.
     return (
-        f'<td width="22" valign="middle" style="padding:0 8px {pad_bottom}px 0;width:22px;">{icon(name, alt)}</td>'
-        f'<td valign="middle" style="padding:0 {pad_right}px {pad_bottom}px 0;font-family:{FONT};font-size:13px;line-height:18px;color:{DARK};">'
-        f'<a href="{href}" style="color:{DARK};text-decoration:none;">{label}</a></td>'
+        f'<tr><td width="22" valign="middle" style="padding:0 8px {pad_bottom}px 0;width:22px;">{icon(name, alt)}</td>'
+        f'<td valign="middle" style="padding:0 0 {pad_bottom}px 0;font-family:{FONT};font-size:13px;line-height:18px;color:{DARK};">'
+        f'<a href="{href}" style="color:{DARK};text-decoration:none;">{label}</a></td></tr>'
+    )
+
+
+def column(names):
+    rows = "".join(contact(n, 8) for n in names)
+    return f'<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">{rows}</table>'
+
+
+# Contacts side by side on desktop, stacked on phones ("hybrid" columns):
+# inline-block divs wrap when the screen is too narrow; Outlook Desktop,
+# which ignores max-width on divs, gets a fixed two-column table instead.
+COL1_W, COL2_W = 244, 170
+
+
+def contacts():
+    # The phone row is optional: it is left out when daten.json has no number.
+    if LINKS["phone"][1]:
+        left, right = ["phone", "web"], ["mail", "linkedin"]
+    else:  # no phone: email moves up so the left column has no gap at the top
+        left, right = ["mail", "web"], ["linkedin"]
+    return (
+        f'<tr><td colspan="2" style="font-size:0;line-height:0;">'
+        f'<!--[if mso]><table cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td width="{COL1_W}" valign="top"><![endif]-->'
+        f'<div style="display:inline-block;width:100%;max-width:{COL1_W}px;vertical-align:top;">{column(left)}</div>'
+        f'<!--[if mso]></td><td width="{COL2_W}" valign="top"><![endif]-->'
+        f'<div style="display:inline-block;width:100%;max-width:{COL2_W}px;vertical-align:top;">{column(right)}</div>'
+        f'<!--[if mso]></td></tr></table><![endif]-->'
+        f'</td></tr>'
     )
 
 
 def build(with_address):
-    # The phone row is optional: it is left out when daten.json has no number.
-    rows = [n for n in ("phone", "mail", "web", "linkedin") if LINKS[n][1]]
-    contacts = "\n".join(f"<tr>{contact(n, 0 if n == rows[-1] else 7, 0)}</tr>" for n in rows)
     address = (
-        f'<tr><td colspan="2" style="padding:12px 0 0 0;font-family:{FONT};font-size:12px;line-height:16px;color:{MUTED};">{ADDRESS}</td></tr>'
+        f'<tr><td colspan="2" style="padding:4px 0 0 0;font-family:{FONT};font-size:12px;line-height:16px;color:{MUTED};">{ADDRESS}</td></tr>'
         if with_address else ""
     )
-    return f'''<table cellpadding="0" cellspacing="0" border="0" role="presentation" width="460" style="border-collapse:separate;width:100%;max-width:460px;font-family:{FONT};">
+    return f'''<table cellpadding="0" cellspacing="0" border="0" role="presentation" width="540" style="border-collapse:separate;width:100%;max-width:540px;font-family:{FONT};">
 <tr><td bgcolor="{CARD}" style="background-color:{CARD};border-radius:12px 12px 0 0;padding:20px 20px;">
 <table cellpadding="0" cellspacing="0" border="0" role="presentation" width="100%" style="border-collapse:collapse;width:100%;">
 <tr>
@@ -72,8 +97,8 @@ def build(with_address):
 <td valign="top" width="100%">
 <table cellpadding="0" cellspacing="0" border="0" role="presentation" width="100%" style="border-collapse:collapse;width:100%;">
 <tr><td colspan="2" style="font-family:{FONT};font-size:20px;line-height:26px;font-weight:bold;color:{DARK};">{NAME}</td></tr>
-<tr><td colspan="2" style="padding:2px 0 14px 0;font-family:{FONT};font-size:12px;line-height:16px;font-weight:bold;color:{TEAL};">{ROLES}</td></tr>
-{contacts}
+<tr><td colspan="2" style="padding:2px 0 14px 0;font-family:{FONT};font-size:11px;line-height:16px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:{TEAL};">{ROLES}</td></tr>
+{contacts()}
 {address}
 </table>
 </td>
@@ -83,7 +108,7 @@ def build(with_address):
 <tr><td bgcolor="{DARK}" style="background-color:{DARK};border-radius:0 0 12px 12px;padding:11px 22px;">
 <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;"><tr>
 <td width="24" valign="middle" style="padding:0 10px 0 0;width:14px;"><img src="{BASE}/sig-logo-klein.png" width="14" height="18" alt="" style="display:block;width:14px;height:18px;border:0;outline:none;"></td>
-<td valign="middle" style="font-family:{FONT};font-size:11px;line-height:15px;color:#FFFFFF;">{TAGLINE}</td>
+<td valign="middle" style="font-family:{FONT};font-size:12px;line-height:16px;color:#FFFFFF;">{TAGLINE}</td>
 </tr></table>
 </td></tr>
 </table>'''

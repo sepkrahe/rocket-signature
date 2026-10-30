@@ -31,12 +31,19 @@ def body_style(html, extra):
     return re.sub(r'<body style="', f'<body style="{extra}', html, count=1)
 
 
+def outlook(html):
+    """Outlook Desktop (Word engine): no border-radius, no max-width, MSO conditionals active."""
+    html = re.sub(r"border-radius:[^;]+;", "", html)
+    html = re.sub(r"width:100%;max-width:(\d+)px;", r"width:\1px;", html)
+    html = re.sub(r"<!--\[if mso\]>(.*?)<!\[endif\]-->", r"\1", html, flags=re.S)
+    return html.replace("display:inline-block;", "display:block;")
+
+
 # name: (html, viewport width, engine)
 SCENARIOS = {
     "1-apple-mail-webkit": (base, 600, "webkit"),
     "2-gmail-web-chromium": (base, 600, "chromium"),
-    "3-outlook-desktop": (re.sub(r"border-radius:[^;]+;", "", base)
-                          .replace("width:100%;max-width:460px;", "width:460px;"), 600, "chromium"),
+    "3-outlook-desktop": (outlook(base), 600, "chromium"),
     "4-images-blocked": (blocked(base), 600, "chromium"),
     "5-dark-mode-inverted": (body_style(base, "filter:invert(1) hue-rotate(180deg);"), 600, "chromium"),
     "6-dark-mode-background": (base.replace("background:#ffffff", "background:#1e1e1e"), 600, "webkit"),
